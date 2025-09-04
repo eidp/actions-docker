@@ -61,7 +61,7 @@ inputs:
 outputs:
   tags:
     description: 'The tags of the pushed image. This includes the registry URL and image name and the tag.'
-    value: '${{ steps.build-and-push.outputs.tags }}'
+    value: '${{ steps.meta.outputs.tags }}'
   digest:
     description: 'The digest of the pushed image'
     value: '${{ steps.build-and-push.outputs.digest }}'
@@ -114,8 +114,8 @@ runs:
   - name: Sign the Docker image(s) with cosign
     shell: bash
     env:
-      DIGEST: ${{ steps.build-and-push.outputs.digest }}
       TAGS: ${{ steps.meta.outputs.tags }}
+      DIGEST: ${{ steps.build-and-push.outputs.digest }}
     run: |
       images=""
       for tag in ${TAGS}; do
