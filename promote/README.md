@@ -3,8 +3,7 @@
 
 Promote an existing Docker image by retagging and pushing it to a specified container registry.
 
-This action uses `crane` to retag the image and `cosign` to sign the image.
-
+This action uses `crane` to retag the image. 
 For Signing the images, this action uses [cosign](https://github.com/sigstore/cosign) using GitHub OIDC tokens for authentication. 
 
 This action requires a GitHub token with the following permissions:
