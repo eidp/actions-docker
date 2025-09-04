@@ -39,7 +39,8 @@ jobs:
 
     - name: Verify docker build and push
       run: |
-        echo ${{ secrets.HARBOR_PASSWORD }} | crane auth login ${{ secrets.HARBOR_HOST }} --username ${{ secrets.HARBOR_USERNAME }} --password-stdin
+        REGISTRY=$(echo "${{ secrets.HARBOR_HOST }}" | cut -d/ -f1)
+        echo ${{ secrets.HARBOR_PASSWORD }} | crane auth login $REGISTRY --username ${{ secrets.HARBOR_USERNAME }} --password-stdin
         for tag in ${{ steps.build-container.outputs.tags }}; do
           image=${tag}@${{ steps.build-container.outputs.digest }}
           echo "Verifying image: $image"
