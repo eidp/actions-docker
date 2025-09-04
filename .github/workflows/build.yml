@@ -27,8 +27,8 @@ jobs:
       id: build-push
       uses: ./build-push
       with:
-        image: ${{ var.HARBOR_HOST }}/hello-world
-        registry: ${{ var.HARBOR_HOST }}
+        image: ${{ vars.HARBOR_HOST }}/hello-world
+        registry: ${{ vars.HARBOR_HOST }}
         registry-username: ${{ secrets.HARBOR_USERNAME }}
         registry-password: ${{ secrets.HARBOR_PASSWORD }}
         context: './testdata'
@@ -67,8 +67,8 @@ jobs:
       id: promote
       uses: ./promote
       with:
-        image: ${{ var.HARBOR_HOST }}/hello-world
-        registry: ${{ var.HARBOR_HOST }}
+        image: ${{ vars.HARBOR_HOST }}/hello-world
+        registry: ${{ vars.HARBOR_HOST }}
         registry-username: ${{ secrets.HARBOR_USERNAME }}
         registry-password: ${{ secrets.HARBOR_PASSWORD }}
         source-tag: ${{ steps.commit-sha.outputs.short-sha }}
