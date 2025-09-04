@@ -1,0 +1,106 @@
+name: 'Docker Promote'
+description: |
+  Promote an existing Docker image by retagging and pushing it to a specified container registry.
+
+  This action uses `crane` to retag the image and `cosign` to sign the image.
+  
+  For Signing the images, this action uses [cosign](https://github.com/sigstore/cosign) using GitHub OIDC tokens for authentication. 
+
+  This action requires a GitHub token with the following permissions:
+  ```yaml  
+    permissions:
+      contents: read
+      id-token: write # Needed for OIDC authentication with cosign
+  ```
+
+author: EIDP
+
+branding:
+  icon: 'anchor'
+  color: 'blue'
+
+inputs:
+  registry:
+    description: 'Container registry to push the image to'
+    required: true
+    default: ''
+  registry_username:
+    description: 'Username for the container registry'
+    required: false
+    default: ''
+  registry_password:
+    description: 'Password for the container registry'
+    required: false
+    default: ''
+  image:
+    description: 'The image to promote. This must include the registry URL. e.g. ghcr.io/owner/repo/image'
+    required: true
+    default: ''
+  source-tag:
+    description: 'The source image tag. This tag must already exist in the registry.'
+    required: true
+    default: ''
+  target-tag:
+    description: 'The target image tag.'
+    required: false
+    default: '${{ env.GITHUB_REF_NAME }}'
+  create-major-version-tag:
+    description: 'Create a tag with only the major version. Should only be used if the target_tag variable is a valid semantic version.'
+    required: false
+    default: 'false'
+
+outputs:
+  tags:
+    description: 'The tags of the promoted image. This includes the registry URL and image name and the tag.'
+    value: '${{ steps.retag-and-push.outputs.tags }}'
+  digest:
+    description: 'The digest of the pushed image'
+    value: '${{ steps.retag-and-push.outputs.digest }}'
+
+runs:
+  using: 'composite'
+  steps:
+  - name: Set up Crane
+    uses: imjasonh/setup-crane@v0.4
+
+  - name: Login to container registry
+    shell: bash
+    run: |
+      REGISTRY=$( echo ${{ inputs.registry }} | cut -d/ -f1 ) # Extract only the authority part from full registry URL
+      echo "${{ inputs.registry_password }}" | crane auth login $REGISTRY --username ${{ inputs.registry_username }} --password-stdin
+
+  - name: Retag and Push Docker Image
+    id: retag-and-push
+    shell: bash
+    run: |
+      crane tag ${{ inputs.image }}:${{ inputs.source-tag }} ${{ inputs.target-tag }}
+      crane tag ${{ inputs.image }}:${{ inputs.source-tag }} latest
+      crane mutate ${{ inputs.image }}:${{ inputs.source-tag }} -l org.opencontainers.image.version=${{ inputs.target-tag }}
+      crane mutate ${{ inputs.image }}:latest -l org.opencontainers.image.version=${{ inputs.target-tag }}
+      IMAGE_DIGEST=$(crane digest ${{ inputs.image }}:${{ inputs.target-tag }})
+      
+      TAGS="${{ inputs.image }}:${{ inputs.target-tag }} ${{ inputs.image }}:latest"
+      
+      if [[ "${{ inputs.create-major-version-tag }}" == "true" ]]; then
+        MAJOR_TAG=$(echo ${{ inputs.target-tag }} | cut -d '.' -f 1)
+        crane tag ${{ inputs.image }}:${{ inputs.source-tag }} $MAJOR_TAG
+        crane mutate ${{ inputs.image }}:$MAJOR_TAG -l org.opencontainers.image.version=${{ inputs.target-tag }}
+        TAGS="$TAGS ${{ inputs.image }}:$MAJOR_TAG"
+      fi
+
+      echo "tags=$TAGS" >> $GITHUB_OUTPUT
+      echo "digest=$IMAGE_DIGEST" >> $GITHUB_OUTPUT
+
+  - name: Sign the Docker image(s) with cosign
+    shell: bash
+    env:
+      TAGS: ${{ steps.retag-and-push.outputs.tags }}
+      DIGEST: ${{ steps.retag-and-push.outputs.digest }}
+    run: |
+      images=""
+      for tag in ${TAGS}; do
+        images+="${tag}@${DIGEST} "
+      done
+
+      echo "Signing images: ${images}"
+      cosign sign --yes ${images}

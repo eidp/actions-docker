@@ -13,6 +13,9 @@ description: |
       contents: read
       id-token: write # Needed for OIDC authentication with cosign
   ```
+
+author: EIDP
+
 branding:
   icon: 'package'
   color: 'blue'
@@ -62,6 +65,7 @@ outputs:
   digest:
     description: 'The digest of the pushed image'
     value: '${{ steps.build-and-push.outputs.digest }}'
+
 runs:
   using: 'composite'
   steps:
