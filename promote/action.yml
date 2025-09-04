@@ -60,6 +60,9 @@ outputs:
 runs:
   using: 'composite'
   steps:
+  - name: Install cosign
+    uses: sigstore/cosign-installer@v3.9.2
+
   - name: Set up Crane
     uses: imjasonh/setup-crane@v0.4
 
