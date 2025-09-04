@@ -97,10 +97,8 @@ runs:
       TAGS: ${{ steps.retag-and-push.outputs.tags }}
       DIGEST: ${{ steps.retag-and-push.outputs.digest }}
     run: |
-      images=""
-      for tag in ${TAGS}; do
-        images+="${tag}@${DIGEST} "
+      for TAG in ${TAGS}; do
+        IMAGE="${TAG}@${DIGEST}"
+        echo "Signing image: ${IMAGE}"
+        cosign sign --yes --recursive ${IMAGE}
       done
-
-      echo "Signing images: ${images}"
-      cosign sign --yes ${images}

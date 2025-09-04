@@ -39,16 +39,14 @@ jobs:
 
     - name: Verify docker build and push
       run: |
-        sleep 10
+        sleep 2 # wait for image to be available
         REGISTRY=$(echo "${{ secrets.HARBOR_HOST }}" | cut -d/ -f1)
-        echo "Logging into registry: $(echo $REGISTRY | sed 's/./& /g')"
-        cat /home/runner/.docker/config.json
         echo ${{ secrets.HARBOR_PASSWORD }} | crane auth login $REGISTRY --username '${{ secrets.HARBOR_USERNAME }}' --password-stdin
         for TAG in ${{ steps.build-push.outputs.tags }}; do
           IMAGE=${TAG}@${{ steps.build-push.outputs.digest }}
           echo "Verifying image: $IMAGE"
           crane manifest $IMAGE
-          cosign verify $IMAGE --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}" -o text
+          cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}" $IMAGE
         done
 
   test-promote-action:
