@@ -73,6 +73,7 @@ runs:
     id: retag-and-push
     shell: bash
     run: |
+      sleep 2 # wait for image to be available
       crane tag ${{ inputs.image }}:${{ inputs.source-tag }} ${{ inputs.target-tag }}
       crane tag ${{ inputs.image }}:${{ inputs.source-tag }} latest
       crane mutate ${{ inputs.image }}:${{ inputs.source-tag }} -l org.opencontainers.image.version=${{ inputs.target-tag }}
