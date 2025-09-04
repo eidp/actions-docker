@@ -8,9 +8,6 @@ on:
     branches:
       - main
 
-env:
-  IMAGE: hello-world
-
 jobs:
   test-build-push-action:
     runs-on: dind-runner
@@ -46,7 +43,7 @@ jobs:
           IMAGE=${TAG}@${{ steps.build-push.outputs.digest }}
           echo "Verifying image: $IMAGE"
           crane manifest $IMAGE
-          cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}" $IMAGE
+          cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}.*" $IMAGE
         done
 
   test-promote-action:
@@ -76,7 +73,7 @@ jobs:
         registry: ${{ secrets.HARBOR_HOST }}
         registry_username: ${{ secrets.HARBOR_USERNAME }}
         registry_password: ${{ secrets.HARBOR_PASSWORD }}
-        source-tag: ${{ steps.commit-sha.outputs.sha }}
+        source-tag: ${{ steps.commit-sha.outputs.short-sha }}
         target-tag: '${{ github.run_id }}'
 
 
