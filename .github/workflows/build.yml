@@ -21,7 +21,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Crane
-      uses: imjasonh/setup-crane@v0.4
+      uses: imjasonh/setup-crane@31b88efe9de28ae0ffa220711af4b60be9435f6e # v0.4
 
     - name: Build and Push Docker Image
       id: build-push
@@ -57,7 +57,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Crane
-      uses: imjasonh/setup-crane@v0.4
+      uses: imjasonh/setup-crane@31b88efe9de28ae0ffa220711af4b60be9435f6e # v0.4
 
     - name: Get commit SHA
       id: commit-sha
@@ -93,7 +93,7 @@ jobs:
     steps:
     - name: Check Workflow Status
       id: check-workflow-status
-      uses: eidp/actions-common/check-workflow-status@v0.4.0
+      uses: eidp/actions-common/check-workflow-status@42dc9e7586ba7a3b7aa74b2f235b220edf7fea44 # v0.4.0
       with:
         jobs: 'test-build-push-action,test-promote-action'
         github-token: ${{ secrets.GITHUB_TOKEN }}
