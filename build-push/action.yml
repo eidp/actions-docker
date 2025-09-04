@@ -1,0 +1,122 @@
+name: 'Docker Build and Push'
+description: |
+  Build and push Docker images to a container registry with multi-platform support, caching, 
+  and image signing using cosign.
+
+  The default versioning strategy uses semantic versioning based on Git tags, and tags images with the commit SHA on branch builds.
+  
+  For Signing the images, this action uses [cosign](https://github.com/sigstore/cosign) using GitHub OIDC tokens for authentication. 
+
+  This action requires a GitHub token with the following permissions:
+  ```yaml  
+    permissions:
+      contents: read
+      id-token: write # Needed for OIDC authentication with cosign
+  ```
+branding:
+  icon: 'package'
+  color: 'blue'
+
+inputs:
+  registry:
+    description: 'Container registry to authenticate with'
+    required: false
+    default: 'ghcr.io'
+  registry_username:
+    description: 'Username for the container registry'
+    required: false
+    default: 'github'
+  registry_password:
+    description: 'Password for the container registry'
+    required: false
+    default: '${{ github.token }}'
+  image:
+    description: 'The image to build and push. This must include the registry URL. e.g. ghcr.io/owner/repo/image'
+    required: true
+    default: ''
+  context:
+    description: 'Build context for Docker. Typically the directory containing the Dockerfile.'
+    required: false
+    default: '.'
+  dockerfile:
+    description: 'Path to the Dockerfile'
+    required: false
+    default: 'Dockerfile'
+  build_args:
+    description: 'Additional build arguments for Docker'
+    required: false
+    default: ''
+  platforms:
+    description: 'Target platforms for the Docker image (e.g., linux/amd64,linux/arm64)'
+    required: false
+    default: 'linux/amd64,linux/arm64'
+  additional_tags:
+    description: 'Additional tags to apply to the image, separated by new lines. See the [docker/metadata-action](https://github.com/docker/metadata-action) documentation for supported tag formats.'
+    required: false
+    default: ''
+
+outputs:
+  tags:
+    description: 'The tags of the pushed image. This includes the registry URL and image name and the tag.'
+    value: '${{ steps.build-and-push.outputs.tags }}'
+  digest:
+    description: 'The digest of the pushed image'
+    value: '${{ steps.build-and-push.outputs.digest }}'
+runs:
+  using: 'composite'
+  steps:
+  - name: Set up QEMU
+    uses: docker/setup-qemu-action@v3.6.0
+
+  - name: Set up Docker Buildx
+    uses: docker/setup-buildx-action@v3.11.1
+
+  - name: Install cosign
+    uses: sigstore/cosign-installer@v3.9.2
+
+  - name: Log in to Container Registry
+    uses: docker/login-action@v3.5.0
+    with:
+      registry: ${{ inputs.registry }}
+      username: ${{ inputs.registry_username }}
+      password: ${{ inputs.registry_password }}
+
+  - name: Extract metadata
+    id: meta
+    uses: docker/metadata-action@v5.8.0
+    with:
+      images: ${{ inputs.image }}
+      tags: |
+        type=semver,pattern={{version}}
+        type=sha,prefix=
+        ${{ inputs.additional_tags || '' }}
+
+  - name: Build and push Docker image
+    id: build-and-push
+    uses: docker/build-push-action@v6.18.0
+    with:
+      context: ${{ inputs.context }}
+      file: ${{ inputs.dockerfile }}
+      build-args: ${{ inputs.build_args }}
+      platforms: ${{ inputs.platforms }}
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
+      push: true
+      sbom: true
+      provenance: mode=max
+      cache-from: type=gha
+      cache-to: type=gha,mode=max
+
+  - name: Sign the Docker image(s) with cosign
+    shell: bash
+    env:
+      DIGEST: ${{ steps.build-and-push.outputs.digest }}
+      TAGS: ${{ steps.meta.outputs.tags }}
+    run: |
+      images=""
+      for tag in ${TAGS}; do
+        images+="${tag}@${DIGEST} "
+      done
+      
+      echo "Signing images: ${images}"
+      cosign sign --yes ${images}
