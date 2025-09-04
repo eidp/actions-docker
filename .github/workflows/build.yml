@@ -29,16 +29,14 @@ jobs:
       with:
         image: ${{ secrets.HARBOR_HOST }}/hello-world
         registry: ${{ secrets.HARBOR_HOST }}
-        registry_username: ${{ secrets.HARBOR_USERNAME }}
-        registry_password: ${{ secrets.HARBOR_PASSWORD }}
+        registry-username: ${{ secrets.HARBOR_USERNAME }}
+        registry-password: ${{ secrets.HARBOR_PASSWORD }}
         context: './testdata'
         dockerfile: './testdata/Dockerfile'
 
     - name: Verify docker build and push
       run: |
         sleep 2 # wait for image to be available
-        REGISTRY=$(echo "${{ secrets.HARBOR_HOST }}" | cut -d/ -f1)
-        echo ${{ secrets.HARBOR_PASSWORD }} | crane auth login $REGISTRY --username '${{ secrets.HARBOR_USERNAME }}' --password-stdin
         for TAG in ${{ steps.build-push.outputs.tags }}; do
           IMAGE=${TAG}@${{ steps.build-push.outputs.digest }}
           echo "Verifying image: $IMAGE"
@@ -71,8 +69,8 @@ jobs:
       with:
         image: ${{ secrets.HARBOR_HOST }}/hello-world
         registry: ${{ secrets.HARBOR_HOST }}
-        registry_username: ${{ secrets.HARBOR_USERNAME }}
-        registry_password: ${{ secrets.HARBOR_PASSWORD }}
+        registry-username: ${{ secrets.HARBOR_USERNAME }}
+        registry-password: ${{ secrets.HARBOR_PASSWORD }}
         source-tag: ${{ steps.commit-sha.outputs.short-sha }}
         target-tag: '${{ github.run_id }}'
 
@@ -80,8 +78,6 @@ jobs:
     - name: Verify promote
       run: |
         sleep 2 # wait for image to be available
-        REGISTRY=$(echo "${{ secrets.HARBOR_HOST }}" | cut -d/ -f1)
-        echo ${{ secrets.HARBOR_PASSWORD }} | crane auth login $REGISTRY --username ${{ secrets.HARBOR_USERNAME }} --password-stdin
         for TAG in ${{ steps.promote.outputs.tags }}; do
           IMAGE=${TAG}@${{ steps.promote.outputs.digest }}
           echo "Verifying image: $IMAGE"

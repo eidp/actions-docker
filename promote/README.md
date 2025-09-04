@@ -19,8 +19,8 @@ This action requires a GitHub token with the following permissions:
 |           Name           |                                                     Description                                                     |Required|         Default        |
 |--------------------------|---------------------------------------------------------------------------------------------------------------------|--------|------------------------|
 |        `registry`        |                                       Container registry to push the image to                                       |   Yes  |           ``           |
-|    `registry_username`   |                                         Username for the container registry                                         |   No   |           ``           |
-|    `registry_password`   |                                         Password for the container registry                                         |   No   |           ``           |
+|    `registry-username`   |                                         Username for the container registry                                         |   No   |           ``           |
+|    `registry-password`   |                                         Password for the container registry                                         |   No   |           ``           |
 |          `image`         |               The image to promote. This must include the registry URL. e.g. ghcr.io/owner/repo/image               |   Yes  |           ``           |
 |       `source-tag`       |                          The source image tag. This tag must already exist in the registry.                         |   Yes  |           ``           |
 |       `target-tag`       |                                                The target image tag.                                                |   No   |`${{ github.ref_name }}`|

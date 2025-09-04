@@ -24,11 +24,11 @@ inputs:
     description: 'Container registry to push the image to'
     required: true
     default: ''
-  registry_username:
+  registry-username:
     description: 'Username for the container registry'
     required: false
     default: ''
-  registry_password:
+  registry-password:
     description: 'Password for the container registry'
     required: false
     default: ''
@@ -63,17 +63,17 @@ runs:
   - name: Set up Crane
     uses: imjasonh/setup-crane@v0.4
 
-  - name: Login to container registry
-    shell: bash
-    run: |
-      REGISTRY=$( echo ${{ inputs.registry }} | cut -d/ -f1 ) # Extract only the authority part from full registry URL
-      echo "${{ inputs.registry_password }}" | crane auth login $REGISTRY --username ${{ inputs.registry_username }} --password-stdin
+  - name: Log in to Container Registry
+    uses: docker/login-action@v3.5.0
+    with:
+      registry: ${{ inputs.registry }}
+      username: ${{ inputs.registry-username }}
+      password: ${{ inputs.registry-password }}
 
   - name: Retag and Push Docker Image
     id: retag-and-push
     shell: bash
     run: |
-      sleep 2 # wait for image to be available
       crane tag ${{ inputs.image }}:${{ inputs.source-tag }} ${{ inputs.target-tag }}
       crane tag ${{ inputs.image }}:${{ inputs.source-tag }} latest
       crane mutate ${{ inputs.image }}:${{ inputs.source-tag }} -l org.opencontainers.image.version=${{ inputs.target-tag }}

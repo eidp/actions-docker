@@ -25,11 +25,11 @@ inputs:
     description: 'Container registry to authenticate with'
     required: false
     default: 'ghcr.io'
-  registry_username:
+  registry-username:
     description: 'Username for the container registry'
     required: false
     default: 'github'
-  registry_password:
+  registry-password:
     description: 'Password for the container registry'
     required: false
     default: '${{ github.token }}'
@@ -82,8 +82,8 @@ runs:
     uses: docker/login-action@v3.5.0
     with:
       registry: ${{ inputs.registry }}
-      username: ${{ inputs.registry_username }}
-      password: ${{ inputs.registry_password }}
+      username: ${{ inputs.registry-username }}
+      password: ${{ inputs.registry-password }}
 
   - name: Get commit SHA
     id: commit-sha
