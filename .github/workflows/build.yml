@@ -1,0 +1,99 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-build-push-action:
+    runs-on: dind-runner
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      with:
+        fetch-depth: 0
+
+    - name: Set up Crane
+      uses: imjasonh/setup-crane@v0.4
+
+    - name: Build and Push Docker Image
+      id: build-push
+      uses: ./build-push
+      with:
+        image: ${{ vars.HARBOR_HOST }}/hello-world
+        registry: ${{ vars.HARBOR_HOST }}
+        registry-username: ${{ secrets.HARBOR_USERNAME }}
+        registry-password: ${{ secrets.HARBOR_PASSWORD }}
+        context: './testdata'
+        dockerfile: './testdata/Dockerfile'
+
+    - name: Verify docker build and push
+      run: |
+        sleep 2 # wait for image to be available
+        for TAG in ${{ steps.build-push.outputs.tags }}; do
+          IMAGE=${TAG}@${{ steps.build-push.outputs.digest }}
+          echo "Verifying image: $IMAGE"
+          crane manifest $IMAGE
+          cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}.*" $IMAGE
+        done
+
+  test-promote-action:
+    runs-on: dind-runner
+    needs: test-build-push-action
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      with:
+        fetch-depth: 0
+
+    - name: Set up Crane
+      uses: imjasonh/setup-crane@v0.4
+
+    - name: Get commit SHA
+      id: commit-sha
+      uses: eidp/actions-common/commit-sha@97d639c9b37f533fc0bb90edefc1c0b89e11c8c3
+
+    - name: Promote Docker Image
+      id: promote
+      uses: ./promote
+      with:
+        image: ${{ vars.HARBOR_HOST }}/hello-world
+        registry: ${{ vars.HARBOR_HOST }}
+        registry-username: ${{ secrets.HARBOR_USERNAME }}
+        registry-password: ${{ secrets.HARBOR_PASSWORD }}
+        source-tag: ${{ steps.commit-sha.outputs.short-sha }}
+        target-tag: '${{ github.run_id }}'
+
+
+    - name: Verify promote
+      run: |
+        sleep 2 # wait for image to be available
+        for TAG in ${{ steps.promote.outputs.tags }}; do
+          IMAGE=${TAG}@${{ steps.promote.outputs.digest }}
+          echo "Verifying image: $IMAGE"
+          crane manifest $IMAGE
+          cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}" $IMAGE
+        done
+
+  check-workflow-status:
+    runs-on: kubernetes-runner
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - name: Check Workflow Status
+      id: check-workflow-status
+      uses: eidp/actions-common/check-workflow-status@v0.4.0
+      with:
+        jobs: 'test-build-push-action,test-promote-action'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
