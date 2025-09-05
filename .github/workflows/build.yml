@@ -61,7 +61,7 @@ jobs:
 
     - name: Get commit SHA
       id: commit-sha
-      uses: eidp/actions-common/commit-sha@c82f876676a8803eb3398de4c508516d0d00a3cc
+      uses: eidp/actions-common/commit-sha@c82f876676a8803eb3398de4c508516d0d00a3cc # v0.5.0
 
     - name: Promote Docker Image
       id: promote
@@ -93,7 +93,7 @@ jobs:
     steps:
     - name: Check Workflow Status
       id: check-workflow-status
-      uses: eidp/actions-common/check-workflow-status@v0.4.0
+      uses: eidp/actions-common/check-workflow-status@c82f876676a8803eb3398de4c508516d0d00a3cc # v0.5.0
       with:
         jobs: 'test-build-push-action,test-promote-action'
         github-token: ${{ secrets.GITHUB_TOKEN }}

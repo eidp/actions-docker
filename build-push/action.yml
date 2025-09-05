@@ -87,7 +87,7 @@ runs:
 
   - name: Get commit SHA
     id: commit-sha
-    uses: eidp/actions-common/commit-sha@c82f876676a8803eb3398de4c508516d0d00a3cc
+    uses: eidp/actions-common/commit-sha@c82f876676a8803eb3398de4c508516d0d00a3cc # v0.5.0
 
   - name: Extract metadata
     id: meta
