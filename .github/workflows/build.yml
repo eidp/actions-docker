@@ -21,7 +21,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Crane
-      uses: imjasonh/setup-crane@v0.4
+      uses: imjasonh/setup-crane@31b88efe9de28ae0ffa220711af4b60be9435f6e # v0.4
 
     - name: Build and Push Docker Image
       id: build-push
@@ -57,7 +57,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up Crane
-      uses: imjasonh/setup-crane@v0.4
+      uses: imjasonh/setup-crane@31b88efe9de28ae0ffa220711af4b60be9435f6e # v0.4
 
     - name: Get commit SHA
       id: commit-sha
