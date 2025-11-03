@@ -15,22 +15,22 @@ This action requires a GitHub token with the following permissions:
 
 ## 🔧 Inputs
 
-|           Name           |                                                     Description                                                     |Required|         Default        |
-|--------------------------|---------------------------------------------------------------------------------------------------------------------|--------|------------------------|
-|        `registry`        |                                       Container registry to push the image to                                       |   Yes  |           ``           |
-|    `registry-username`   |                                         Username for the container registry                                         |   No   |           ``           |
-|    `registry-password`   |                                         Password for the container registry                                         |   No   |           ``           |
-|          `image`         |               The image to promote. This must include the registry URL. e.g. ghcr.io/owner/repo/image               |   Yes  |           ``           |
-|       `source-tag`       |                          The source image tag. This tag must already exist in the registry.                         |   Yes  |           ``           |
-|       `target-tag`       |                                                The target image tag.                                                |   No   |`${{ github.ref_name }}`|
-|`create-major-version-tag`|Create a tag with only the major version. Should only be used if the target_tag variable is a valid semantic version.|   No   |         `false`        |
+|Name                       |Description                                                                                                           |Required|Default                  |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------|--------|-------------------------|
+|`registry`                 |Container registry to push the image to                                                                               |Yes     |``                       |
+|`registry-username`        |Username for the container registry                                                                                   |No      |``                       |
+|`registry-password`        |Password for the container registry                                                                                   |No      |``                       |
+|`image`                    |The image to promote. This must include the registry URL. e.g. ghcr.io/owner/repo/image                               |Yes     |``                       |
+|`source-tag`               |The source image tag. This tag must already exist in the registry.                                                    |Yes     |``                       |
+|`target-tag`               |The target image tag.                                                                                                 |No      |`${{ github.ref_name }}` |
+|`create-major-version-tag` |Create a tag with only the major version. Should only be used if the target_tag variable is a valid semantic version. |No      |`false`                  |
 
 ## 📤 Outputs
 
-|  Name  |                                        Description                                       |
-|--------|------------------------------------------------------------------------------------------|
-| `tags` |The tags of the promoted image. This includes the registry URL and image name and the tag.|
-|`digest`|                              The digest of the pushed image                              |
+|Name     |Description                                                                                |
+|---------|-------------------------------------------------------------------------------------------|
+|`tags`   |The tags of the promoted image. This includes the registry URL and image name and the tag. |
+|`digest` |The digest of the pushed image                                                             |
 
 ## 🚀 Usage
 
