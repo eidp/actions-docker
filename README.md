@@ -8,7 +8,7 @@ This repository contains Docker specific actions.
 
 The following GitHub Actions are available in this repository:
 
-- [promote](promote/README.md)
 - [build-push](build-push/README.md)
+- [promote](promote/README.md)
 
 <!-- END ACTIONS -->
