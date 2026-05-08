@@ -58,7 +58,7 @@ inputs:
     required: false
     default: ''
   ssh:
-    description: 'SSH agent socket or keys to expose to the build (e.g., `default=${{ env.SSH_AUTH_SOCK }}`). See the [docker/build-push-action](https://github.com/docker/build-push-action#ssh) documentation for the supported format. Required when the Dockerfile uses `RUN --mount=type=ssh` to fetch private dependencies.'
+    description: 'SSH agent socket or keys to expose to the build (e.g., `default=$SSH_AUTH_SOCK`, passed via env). See the [docker/build-push-action](https://github.com/docker/build-push-action#ssh) documentation for the supported format. Required when the Dockerfile uses `RUN --mount=type=ssh` to fetch private dependencies.'
     required: false
     default: ''
   secrets:
