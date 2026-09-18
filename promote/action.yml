@@ -78,16 +78,13 @@ runs:
     run: |
       crane tag ${{ inputs.image }}:${{ inputs.source-tag }} ${{ inputs.target-tag }}
       crane tag ${{ inputs.image }}:${{ inputs.source-tag }} latest
-      crane mutate ${{ inputs.image }}:${{ inputs.source-tag }} -l org.opencontainers.image.version=${{ inputs.target-tag }}
-      crane mutate ${{ inputs.image }}:latest -l org.opencontainers.image.version=${{ inputs.target-tag }}
       IMAGE_DIGEST=$(crane digest ${{ inputs.image }}:${{ inputs.target-tag }})
-      
+
       TAGS="${{ inputs.image }}:${{ inputs.target-tag }} ${{ inputs.image }}:latest"
-      
+
       if [[ "${{ inputs.create-major-version-tag }}" == "true" ]]; then
         MAJOR_TAG=$(echo ${{ inputs.target-tag }} | cut -d '.' -f 1)
         crane tag ${{ inputs.image }}:${{ inputs.source-tag }} $MAJOR_TAG
-        crane mutate ${{ inputs.image }}:$MAJOR_TAG -l org.opencontainers.image.version=${{ inputs.target-tag }}
         TAGS="$TAGS ${{ inputs.image }}:$MAJOR_TAG"
       fi
 
