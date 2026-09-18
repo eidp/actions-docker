@@ -81,7 +81,15 @@ jobs:
         for TAG in ${{ steps.promote.outputs.tags }}; do
           IMAGE=${TAG}@${{ steps.promote.outputs.digest }}
           echo "Verifying image: $IMAGE"
-          crane manifest $IMAGE
+          MANIFEST=$(crane manifest $IMAGE)
+          echo "$MANIFEST"
+
+          MEDIA_TYPE=$(echo "$MANIFEST" | jq -r '.mediaType')
+          if [[ "$MEDIA_TYPE" != "application/vnd.oci.image.index.v1+json" ]]; then
+            echo "::error::Expected $IMAGE to be a multi-platform index (application/vnd.oci.image.index.v1+json), got $MEDIA_TYPE. This usually means the promoted tag got flattened to a single-platform manifest, dropping other platforms and attestations."
+            exit 1
+          fi
+
           cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/${{ github.repository }}" $IMAGE
         done
 
